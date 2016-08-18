@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>WebSocket Test</title>
+</head>
+<body>
+<script>
+
+function draw(buffer) {
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+	var blob = new Blob([buffer], {type: "image/jpeg"});
+
+	var domURL = self.URL || self.webkitURL || self,
+    url = domURL.createObjectURL(blob),
+    img = new Image;
+
+  	img.onload = function() {
+    	domURL.revokeObjectURL(url); // clean up
+    	document.body.appendChild(this);
+    	ctx.clearRect(0, 0, canvas.width, canvas.height);
+    	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    	// this = image
+  	};
+    img.onerror = function (stuff) {
+        console.log("Img Onerror:", stuff);
+    };
+    img.src = url;
+}
+
+
+var ws;
+window.onload=function(){
+  ws=new WebSocket("ws://localhost:8080/img");
+  ws.binaryType = 'arraybuffer';
+  ws.onmessage=function(evt){
+  	draw(evt.data);
+  	console.log(evt.data);
+  };
+  ws.onopen=function(evt){
+    //ws.send("foto!");
+    alert("Conectado!");
+  }
+}
+window.onclose=function(){
+  ws.close();
+}
+
+
+</script>
+<canvas id='canvas'></canvas>
+<input type="text" id="angulo" value="0">
+<input type="submit" value="Cargar" onClick="ws.send(document.getElementById('angulo').value);">
+</body>
+</html>
